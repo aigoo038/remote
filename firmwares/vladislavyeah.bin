@@ -1,0 +1,70 @@
+#include "mbed.h"
+
+#define PASSWORD_LENGTH 4
+
+DigitalIn  button1(A2);
+DigitalIn  button2(A3);
+DigitalIn  button3(D3);
+DigitalIn  button4(D6);
+DigitalOut relay(D4);
+DigitalOut led(LED1);
+
+int main()
+{
+    int password[PASSWORD_LENGTH] = {2, 4, 3, 1};
+    int lastPressed = 0;
+    int progress = 0;
+    int i;
+    
+    button1.mode(PullNone);
+    button2.mode(PullNone);
+    button3.mode(PullNone);
+    button4.mode(PullNone);
+    relay = 1;
+    led = 1;
+    
+    while (1) {
+        printf("(%d, %d, %d, %d)\n\r",
+            button1.read(),
+            button2.read(),
+            button3.read(),
+            button4.read());
+        while (button1 == 0) {
+            lastPressed = 1;
+            button1.read();
+        }
+        while (button2 == 0) {
+            lastPressed = 2;
+            button2.read();
+        }
+        while (button3 == 0) {
+            lastPressed = 3;
+            button3.read();
+        }
+        while (button4 == 0) {
+            lastPressed = 4;
+            button4.read();
+        }
+        if (lastPressed != 0) {
+            led = 0;
+            if (lastPressed == password[progress]) {
+                ++progress;
+                if (progress == PASSWORD_LENGTH) {
+                    progress = 0;
+                    relay = 0;
+                    for (i = 0; i < 10; ++i) {
+                        led = !led;
+                        wait_ms(1000);
+                    }
+                    relay = 1;
+                }
+            }
+            else {
+                progress = 0;
+            }
+            wait_ms(100);
+            led = 1;
+        }
+        lastPressed = 0;
+    }
+}
